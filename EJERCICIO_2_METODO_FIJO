@@ -1,0 +1,104 @@
+#           Autor:
+#   María Alexandra Guardia Canche
+#   alexandra.guardia.25@gmail.com
+#   Versión 1.0 : 11/02/2025
+
+# Importamos las librerías necesarias
+import numpy as np  # Para cálculos numéricos
+import matplotlib.pyplot as plt  # Para generar gráficas
+
+# Definir la función g(x) para el método de punto fijo
+# Esta función se obtiene despejando la ecuación original
+# y transformándola en la forma x = g(x)
+def g(x):
+    return (np.log(4*x))  # Aplicamos la transformación logarítmica
+
+# Criterio de convergencia: derivada de g(x)
+def g_prime(x):
+    return (1/x)  # Calculamos la derivada de g(x) con respecto a x
+
+# Función para calcular el error absoluto
+def error_absoluto(x_new, x_old):
+    return abs(x_new - x_old)  # Diferencia absoluta entre iteraciones consecutivas
+
+# Función para calcular el error relativo
+def error_relativo(x_new, x_old):
+    return abs((x_new - x_old) / x_new)  # Diferencia relativa entre iteraciones consecutivas
+
+# Función para calcular el error cuadrático
+def error_cuadratico(x_new, x_old):
+    return (x_new - x_old)**2  # Error al cuadrado para evaluar estabilidad
+
+# Implementación del Método de Punto Fijo
+def punto_fijo(x0, tol=10e-5, max_iter=100):  # Parámetros: valor inicial, tolerancia y máximo de iteraciones
+    iteraciones = []  # Lista para almacenar los resultados de cada iteración
+    errores_abs = []  # Lista para errores absolutos
+    errores_rel = []  # Lista para errores relativos
+    errores_cuad = []  # Lista para errores cuadráticos
+
+    x_old = x0  # Inicializamos x con el valor inicial
+    for i in range(max_iter):  # Iteramos hasta el máximo permitido
+        x_new = g(x_old)  # Aplicamos la función g(x)
+        e_abs = error_absoluto(x_new, x_old)  # Calculamos el error absoluto
+        e_rel = error_relativo(x_new, x_old)  # Calculamos el error relativo
+        e_cuad = error_cuadratico(x_new, x_old)  # Calculamos el error cuadrático
+
+        # Almacenamos los valores en la lista de iteraciones
+        iteraciones.append((i+1, x_new, e_abs, e_rel, e_cuad))
+        errores_abs.append(e_abs)
+        errores_rel.append(e_rel)
+        errores_cuad.append(e_cuad)
+
+        if e_abs < tol:  # Criterio de parada basado en la tolerancia
+            break  # Si el error absoluto es menor que la tolerancia, terminamos
+
+        x_old = x_new  # Actualizamos x_old para la siguiente iteración
+
+    return iteraciones, errores_abs, errores_rel, errores_cuad  # Devolvemos los resultados
+
+# Definimos los parámetros iniciales
+x0 = 1.0  # Valor inicial de x
+iteraciones, errores_abs, errores_rel, errores_cuad = punto_fijo(x0)  # Ejecutamos el método
+
+# Imprimir la tabla de iteraciones
+print("Iteración | x_n      | Error absoluto | Error relativo | Error cuadrático")
+print("-----------------------------------------------------------------------")
+for it in iteraciones:
+    print(f"{it[0]:9d} | {it[1]:.6f} | {it[2]:.6e} | {it[3]:.6e} | {it[4]:.6e}")
+
+# Graficar la convergencia de la función g(x)
+x_vals = np.linspace(-1, 3, 100)  # Definimos el rango de valores de x
+y_vals = g(x_vals)  # Evaluamos g(x) en esos valores
+
+plt.figure(figsize=(8, 5))  # Configuramos el tamaño de la figura
+plt.plot(x_vals, y_vals, label=r"$g(x) = (Log(4x))$", color="blue")  # Graficamos g(x)
+plt.plot(x_vals, x_vals, linestyle="dashed", color="red", label="y = x")  # Línea de referencia
+
+# Graficar las iteraciones sobre la función
+gx_vals = [it[1] for it in iteraciones]  # Extraemos los valores de x de las iteraciones
+gy_vals = [g(x) for x in gx_vals]  # Evaluamos g(x) en esos valores
+plt.scatter(gx_vals, gy_vals, color="black", zorder=3)  # Dibujamos los puntos de las iteraciones
+plt.plot(gx_vals, gy_vals, linestyle="dotted", color="black", label="Iteraciones")  # Conectamos los puntos
+
+plt.xlabel("x")
+plt.ylabel("g(x)")
+plt.legend()
+plt.grid(True)
+plt.title("Método de Punto Fijo")
+plt.savefig("punto_fijo_convergencia.png")  # Guardamos la imagen generada
+plt.show()  # Mostramos la gráfica
+
+# Graficar la evolución de los errores
+plt.figure(figsize=(8, 5))  # Configuramos el tamaño de la figura
+plt.plot(range(1, len(errores_abs) + 1), errores_abs, marker="o", label="Error absoluto")  # Error absoluto
+plt.plot(range(1, len(errores_rel) + 1), errores_rel, marker="s", label="Error relativo")  # Error relativo
+plt.plot(range(1, len(errores_cuad) + 1), errores_cuad, marker="^", label="Error cuadrático")  # Error cuadrático
+
+plt.xlabel("Iteración")
+plt.ylabel("Error")
+plt.yscale("log")  # Usamos escala logarítmica para mejor visualización
+plt.legend()
+plt.grid(True)
+plt.title("Evolución de los Errores")
+plt.savefig("errores_punto_fijo.png")  # Guardamos la imagen generada
+plt.show()  # Mostramos la gráfica
